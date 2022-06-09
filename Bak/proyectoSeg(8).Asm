@@ -13,8 +13,17 @@ pWnd dd 0
 hdc  dd 0 
 rectangulo RECT 0,0,0,0
 coord1 	POINT 150,30
-coord2 	POINT 160,60
+coord2 	POINT 170,60
 coord3 	POINT 120,60
+
+
+cirx	dd 80
+ciry	dd 120
+cirx1 	dd 130
+ciry1	dd 170
+corCir1 POINT 80,120
+corCir2 POINT 130,170
+
 section '.code' code readable executable
 
 inicio:
@@ -98,12 +107,12 @@ movArr:
 	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
-	add [coord1.x],20		;crea otro triangulo
-	add [coord1.y],20
-	add [coord2.x],30
-	add [coord2.y],30
-	add [coord3.x],30
-	add [coord3.y],30
+	;add [coord1.x],20		;crea otro triangulo
+	sub [coord1.y],20
+	;add [coord2.x],30
+	sub [coord2.y],20
+	;add [coord3.x],30
+	sub [coord3.y],20
 	invoke Polygon,[hdc],coord1,3
 	invoke CreateSolidBrush,0BBh ;cambia el color de relleno
 	invoke FillRect,[hdc],rectangulo,eax
@@ -114,11 +123,20 @@ movAb:
 	invoke CreateSolidBrush,000h		;tratar de limpiar 
 	invoke FillRect,[hdc],rectangulo,eax
 	;dibujamos de nuevo
-	add [rectangulo.bottom],20 ;SUBE 
 	
-	add [rectangulo.top],20	;sube arriba pero no borra lo dibujado
+	;add [rectangulo.bottom],20 ;SUBE 
+	
+	;add [rectangulo.top],20	;baja abajo 
+	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	add [coord1.y],20
+	;add [coord2.x],30
+	add [coord2.y],20
+	;add [coord3.x],30
+	add [coord3.y],20
+	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
+	
 	invoke CreateSolidBrush,0BBh
 	invoke FillRect,[hdc],rectangulo,eax
 	
@@ -127,12 +145,19 @@ movAb:
 movDer:
 	invoke CreateSolidBrush,000h		;tratar de limpiar 
 	invoke FillRect,[hdc],rectangulo,eax
+	
+	
 	;dibujamos de nuevo
 	add [rectangulo.left],20 ;a la derecha 
 	
 	add [rectangulo.right],20	;va a al izquierda
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	add [coord1.x],20
+	add [coord2.x],20
+	add [coord3.x],20
+	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
+	
 	invoke CreateSolidBrush,0BBh
 	invoke FillRect,[hdc],rectangulo,eax
 	
@@ -148,6 +173,18 @@ movIz:
 	sub [rectangulo.left],20	;sube arriba pero no borra lo dibujado
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	;figura circulo
+	sub [corCir1.x],10
+	sub [corCir2.x],10
+	stdcall CambiaColorFondo, 000h,[hdc]
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
+	
+	;figura de triangulo
+	sub [coord1.x],20
+	sub [coord2.x],20
+	sub [coord3.x],20
+	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
+	
 	invoke CreateSolidBrush,0BBh
 	invoke FillRect,[hdc],rectangulo,eax
 	
@@ -157,7 +194,7 @@ movIz:
 drawCir:
 	invoke GetDC,[pWnd]
 	mov [hdc],eax					;como mover esto
-	invoke Ellipse,[hdc],80,120,130,170
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y]  ;trato de poner nro const
 	mov eax,1
 	jmp finish
 	
@@ -166,7 +203,8 @@ drawTrian:
 	mov [hdc],eax
 	
 	invoke Polygon,[hdc],coord1,3
-	 
+	invoke CreateSolidBrush,0BBh
+	invoke FillRect,[hdc],Polygon,eax 
 	;invoke    Pie,[hdc],140,85,280,50,140,75,180,75 
 	;polygon  ;nro de vertices
 	 ;invoke MoveToEx,[hdc],200,40
@@ -180,6 +218,22 @@ drawTrian:
 jCLOSE:	
 	invoke EndDialog,[hWnd],0
 	mov eax,1
+proc  CambiaColorFondo newColor, uhdc
+    ;  Propósito: Modifica el color de fondo por defecto
+    ;  Entrada  : newColor:DWORD, uhdc:DWORD
+    ;  Salida   : Ninguna
+    ;  Destruye : Ninguna
+    ;LOCAL     ulb:LOGBRUSH, uhBrush:DWORD, uhBrushOld:DWORD
+    mov       [ulb.lbStyle], BS_SOLID
+    mov       eax, [newColor]
+    mov       [ulb.lbColor], eax        ; BBGGRR, color
+    mov       [ulb.lbHatch], NULL
+    invoke    CreateBrushIndirect, ulb
+    mov       [uhBrush], eax
+    invoke    SelectObject,[uhdc],[uhBrush]     ; Aplicamos el color de fondo
+;     mov       [hBrushOld], eax
+    ret
+endp
 	
 finish:
 	pop ebx esi edi
