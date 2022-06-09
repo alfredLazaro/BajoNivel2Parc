@@ -12,6 +12,7 @@ Ist  dd 0
 pWnd dd 0
 hdc  dd 0 
 rectangulo RECT 0,0,0,0
+rectan2    RECT 0,0,0,0
 coord1 	POINT 150,30
 coord2 	POINT 170,60
 coord3 	POINT 120,60
@@ -88,8 +89,14 @@ drawRec:
 	mov [rectangulo.top],50
 	mov [rectangulo.bottom],50
 	add [rectangulo.bottom],50
+	
+	add [rectan2.right],350
+	;add [rectan2.top],200
+	add [rectan2.bottom],290
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	invoke CreateSolidBrush,000h
+	invoke FillRect,[hdc],rectan2,eax
 	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
 	
@@ -107,6 +114,13 @@ movArr:
 	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	
+	;fig Circulo
+	sub [corCir1.y],10
+	sub [corCir2.y],10
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
+
+	
 	;add [coord1.x],20		;crea otro triangulo
 	sub [coord1.y],20
 	;add [coord2.x],30
@@ -114,7 +128,7 @@ movArr:
 	;add [coord3.x],30
 	sub [coord3.y],20
 	invoke Polygon,[hdc],coord1,3
-	invoke CreateSolidBrush,0BBh ;cambia el color de relleno
+	invoke CreateSolidBrush,0FFh ;cambia el color de relleno
 	invoke FillRect,[hdc],rectangulo,eax
 	
 	mov eax,1
@@ -123,13 +137,17 @@ movAb:
 	invoke CreateSolidBrush,000h		;tratar de limpiar 
 	invoke FillRect,[hdc],rectangulo,eax
 	;dibujamos de nuevo
-	
-	;add [rectangulo.bottom],20 ;SUBE 
-	
-	;add [rectangulo.top],20	;baja abajo 
+	add [rectangulo.bottom],10 ;baja 
+	add [rectangulo.top],10	;baja abajo 
 	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	;figura circulo
+	add [corCir1.y],10
+	add [corCir2.y],10
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
+
+	;figura de triangulo	
 	add [coord1.y],20
 	;add [coord2.x],30
 	add [coord2.y],20
@@ -137,7 +155,7 @@ movAb:
 	add [coord3.y],20
 	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
 	
-	invoke CreateSolidBrush,0BBh
+	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
 	
 	mov eax,1
@@ -153,12 +171,18 @@ movDer:
 	add [rectangulo.right],20	;va a al izquierda
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	;figura circulo
+	add [corCir1.x],10
+	add [corCir2.x],10
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
+
+	;figura de triangulo	
 	add [coord1.x],20
 	add [coord2.x],20
 	add [coord3.x],20
 	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
 	
-	invoke CreateSolidBrush,0BBh
+	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
 	
 	mov eax,1
@@ -176,7 +200,7 @@ movIz:
 	;figura circulo
 	sub [corCir1.x],10
 	sub [corCir2.x],10
-	stdcall CambiaColorFondo, 000h,[hdc]
+	;stdcall CambiaColorFondo, 000h,[hdc]
 	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
 	
 	;figura de triangulo
@@ -185,7 +209,7 @@ movIz:
 	sub [coord3.x],20
 	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
 	
-	invoke CreateSolidBrush,0BBh
+	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
 	
 	mov eax,1
@@ -218,29 +242,30 @@ drawTrian:
 jCLOSE:	
 	invoke EndDialog,[hWnd],0
 	mov eax,1
-proc  CambiaColorFondo newColor, uhdc
-    ;  Propósito: Modifica el color de fondo por defecto
-    ;  Entrada  : newColor:DWORD, uhdc:DWORD
-    ;  Salida   : Ninguna
-    ;  Destruye : Ninguna
-    ;LOCAL     ulb:LOGBRUSH, uhBrush:DWORD, uhBrushOld:DWORD
-    invoke    CreateBrushIndirect, ulb
-    mov       [ulb.lbStyle], BS_SOLID
-    mov       eax, [newColor]
-    mov       [ulb.lbColor], eax        ; BBGGRR, color
-    mov       [ulb.lbHatch], NULL
-    
-    mov       [uhBrush], eax
-    invoke    SelectObject,[uhdc],[uhBrush]     ; Aplicamos el color de fondo
-;     mov       [hBrushOld], eax
-    ret
-endp
+
 	
 finish:
 	pop ebx esi edi
 	ret
 endp
 
+proc  CambiaColorFondo newColor, uhdc
+    ;  Propósito: Modifica el color de fondo por defecto
+    ;  Entrada  : newColor:DWORD, uhdc:DWORD
+    ;  Salida   : Ninguna
+    ;  Destruye : Ninguna
+    ;LOCAL     ulb:LOGBRUSH
+    
+    mov       [ulb.lbStyle], BS_SOLID
+    mov       eax, [newColor]
+    mov       [ulb.lbColor], eax        ; BBGGRR, color
+    mov       [ulb.lbHatch], NULL
+    invoke    CreateBrushIndirect, ulb
+    mov       [uhBrush], eax
+    invoke    SelectObject,[uhdc],[uhBrush]     ; Aplicamos el color de fondo
+;     mov       [hBrushOld], eax
+    ret
+endp
 section '.idata' import data readable writeable
   ;importamos solo los procedimientos basicos para abrir una ventana
   ;library kernel, 'KERNEL32.DLL',\

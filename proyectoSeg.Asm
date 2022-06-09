@@ -12,11 +12,13 @@ Ist  dd 0
 pWnd dd 0
 hdc  dd 0 
 rectangulo RECT 0,0,0,0
+rectan2    RECT 0,0,0,0
 coord1 	POINT 150,30
 coord2 	POINT 170,60
 coord3 	POINT 120,60
-
-
+brocha LOGBRUSH 
+ulb    LOGBRUSH 
+uhBrush  dd 1
 cirx	dd 80
 ciry	dd 120
 cirx1 	dd 130
@@ -88,8 +90,14 @@ drawRec:
 	mov [rectangulo.top],50
 	mov [rectangulo.bottom],50
 	add [rectangulo.bottom],50
+	
+	add [rectan2.right],350
+	;add [rectan2.top],200
+	add [rectan2.bottom],290
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	invoke CreateSolidBrush,000h
+	invoke FillRect,[hdc],rectan2,eax
 	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
 	
@@ -121,7 +129,7 @@ movArr:
 	;add [coord3.x],30
 	sub [coord3.y],20
 	invoke Polygon,[hdc],coord1,3
-	invoke CreateSolidBrush,0BBh ;cambia el color de relleno
+	invoke CreateSolidBrush,0FFh ;cambia el color de relleno
 	invoke FillRect,[hdc],rectangulo,eax
 	
 	mov eax,1
@@ -130,10 +138,8 @@ movAb:
 	invoke CreateSolidBrush,000h		;tratar de limpiar 
 	invoke FillRect,[hdc],rectangulo,eax
 	;dibujamos de nuevo
-	
-	;add [rectangulo.bottom],20 ;SUBE 
-	
-	;add [rectangulo.top],20	;baja abajo 
+	add [rectangulo.bottom],10 ;baja 
+	add [rectangulo.top],10	;baja abajo 
 	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
@@ -150,7 +156,7 @@ movAb:
 	add [coord3.y],20
 	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
 	
-	invoke CreateSolidBrush,0BBh
+	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
 	
 	mov eax,1
@@ -177,7 +183,7 @@ movDer:
 	add [coord3.x],20
 	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
 	
-	invoke CreateSolidBrush,0BBh
+	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
 	
 	mov eax,1
@@ -195,7 +201,7 @@ movIz:
 	;figura circulo
 	sub [corCir1.x],10
 	sub [corCir2.x],10
-	;stdcall CambiaColorFondo, 000h,[hdc]
+	stdcall CambiaColorFondo, 000h,[hdc]
 	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
 	
 	;figura de triangulo
@@ -204,7 +210,7 @@ movIz:
 	sub [coord3.x],20
 	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
 	
-	invoke CreateSolidBrush,0BBh
+	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
 	
 	mov eax,1
@@ -214,6 +220,7 @@ drawCir:
 	invoke GetDC,[pWnd]
 	mov [hdc],eax					;como mover esto
 	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y]  ;trato de poner nro const
+	
 	mov eax,1
 	jmp finish
 	
@@ -222,8 +229,13 @@ drawTrian:
 	mov [hdc],eax
 	
 	invoke Polygon,[hdc],coord1,3
-	invoke CreateSolidBrush,0BBh
-	invoke FillRect,[hdc],Polygon,eax 
+	invoke CreateSolidBrush,0ffh
+	invoke    CreateBrushIndirect, brocha
+	mov 	[brocha.lbStyle],eax
+	invoke FillRgn,[hdc],coord1,ulb
+	;invoke SetPolyFillMode,[hdc],ALTERNATE
+	;invoke CreateSolidBrush,0BBh
+	;invoke FillRect,[hdc],Polygon,eax 
 	;invoke    Pie,[hdc],140,85,280,50,140,75,180,75 
 	;polygon  ;nro de vertices
 	 ;invoke MoveToEx,[hdc],200,40
