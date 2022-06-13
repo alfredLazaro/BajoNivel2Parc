@@ -4,13 +4,38 @@ entry inicio
 include 'Win32a.inc'
 
 ventana_1	equ		1
+ventana_2   equ		2
 salir_btn	equ		1000
+IDC_TAB1	equ		1008
+cdXPos      EQU  128         ; Constante double X-Posición de la ventana(esq sup izqda)
+cdYPos      EQU  128         ; Constante double Y-Posición de la ventana(esq sup izqda)
+cdXSize     EQU  320         ; Constante double X-tamaño de la ventana
+cdYSize     EQU  200         ; Constante double Y-tamaño de la ventana
+cdColFondo	EQU  COLOR_BTNFACE+1
+cdVIcono	EQU	 IDI_APPLICATION
+cdVCursor   EQU  IDC_ARROW
+
+cdVBarTipo  EQU  NULL              ; Normal, con icono
+cdVBtnTipo  EQU  WS_VISIBLE+WS_DLGFRAME+WS_SYSMENU    ; Normal sólo con botón cerrar
+; cdVBtnTipo     EQU  WS_OVERLAPPEDWINDOW                ; Normal sólo con los tres botones
+; Constantes para la subventana del texto
+cdVCarText  EQU  WS_CHILD + WS_VISIBLE + SS_CENTER
 
 section '.data' data readable writeable
 
 Ist  dd 0
 pWnd dd 0
 hdc  dd 0 
+cdPosx  dd 100
+cdPosy	dd 100
+cdSix	dd 600
+cdSi	dd 500
+NombreClase db 'EXP01',0
+msgCabecera db 'Titulo de ventana',0
+wMsg	MSG
+wc      WNDCLASS 0,WndProc,0,0,NULL,NULL,NULL,cdColFondo,NULL,NombreClase
+ps		PAINTSTRUCT
+CommandLine DD ?
 rectangulo RECT 0,0,0,0
 rectan2    RECT 0,0,0,0
 coord1 	POINT 150,30
@@ -18,6 +43,7 @@ coord2 	POINT 170,60
 coord3 	POINT 120,60
 brocha LOGBRUSH 
 ulb    LOGBRUSH 
+uhBrush  dd 1
 cirx	dd 80
 ciry	dd 120
 cirx1 	dd 130
@@ -82,6 +108,15 @@ salir:
 	mov eax,1
 	jmp finish
 drawRec:
+	invoke GetModuleHandle,2
+	mov [wc.hInstance],eax
+	mov [wc.lpfnWndProc],WndProc
+	mov [wc.hbrBackground],COLOR_BTNFACE+1
+	invoke GetCommandLine
+	mov [CommandLine],EAX
+	stdcall WinMain,[wc.hInstance],NULL,NULL, SW_SHOWNORMAL
+	invoke ExitProcess,[wMsg.wParam]
+	
 	mov [rectangulo.left],30
 	mov [rectangulo.right],50
 	add [rectangulo.right],50
@@ -90,9 +125,9 @@ drawRec:
 	mov [rectangulo.bottom],50
 	add [rectangulo.bottom],50
 	
-	add [rectan2.right],350
+	mov [rectan2.right],350
 	;add [rectan2.top],200
-	add [rectan2.bottom],290
+	mov [rectan2.bottom],290
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 	invoke CreateSolidBrush,000h
@@ -111,9 +146,10 @@ movArr:
 	
 	sub [rectangulo.top],20	;sube arriba pero no borra lo dibujado
 	
-	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	;cambiar color de fondo
+	stdcall CambiaColorFondo, 000h,[hdc]
 	
 	;fig Circulo
 	sub [corCir1.y],10
@@ -142,6 +178,8 @@ movAb:
 	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	;cambiar color de fondo
+	stdcall CambiaColorFondo, 000h,[hdc]
 	;figura circulo
 	add [corCir1.y],10
 	add [corCir2.y],10
@@ -149,9 +187,7 @@ movAb:
 
 	;figura de triangulo	
 	add [coord1.y],20
-	;add [coord2.x],30
 	add [coord2.y],20
-	;add [coord3.x],30
 	add [coord3.y],20
 	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
 	
@@ -171,6 +207,8 @@ movDer:
 	add [rectangulo.right],20	;va a al izquierda
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
+	;cambiar color de fondo
+	stdcall CambiaColorFondo, 000h,[hdc]
 	;figura circulo
 	add [corCir1.x],10
 	add [corCir2.x],10
@@ -226,7 +264,7 @@ drawCir:
 drawTrian:
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
-	
+	stdcall CambiaColorFondo, 000h,[hdc]
 	invoke Polygon,[hdc],coord1,3
 	invoke CreateSolidBrush,0ffh
 	invoke    CreateBrushIndirect, brocha
@@ -254,6 +292,47 @@ finish:
 	pop ebx esi edi
 	ret
 endp
+proc WinMain uses ebx esi edi, hInst,hPrevInst, CmdLine, CmdShow
+	
+	invoke LoadIcon,0,cdVIcono
+	mov edx,eax
+	mov eax,[hInst]
+	mov ebx,NombreClase
+	mov ecx,WndProc
+	mov [wc.hInstance],eax
+	mov [wc.lpszClassName],ebx
+	mov [wc.lpfnWndProc],ecx
+	mov [wc.hIcon],edx
+	
+	invoke LoadCursor,0,cdVCursor
+	mov [wc.hCursor],eax
+	
+	invoke RegisterClass,wc
+	test eax,eax
+	jz   error
+	;mov [whMain],eax	;esto esta demas
+	
+	invoke CreateWindowEx,cdVBarTipo,NombreClase,msgCabecera,cdVBarTipo,cdXPos,cdYPos,cdXSize,cdYSize,NULL,NULL,[wc.hInstance],NULL
+	
+	;invoke ShowWindow,dword hWnd,dword SW_SHOWNORMAL
+	;invoke UpdateWindow,dword hWnd
+	
+	msg_loop:
+		invoke GetMessage,wMsg,NULL,0,0
+		cmp eax,1
+		jb end_loop
+		jne msg_loop
+		invoke TranslateMessage,wMsg
+		invoke DispatchMessage,wMsg
+	jmp msg_loop
+	
+	error:
+		invoke MessageBox,NULL,MsgError,NULL,MB_ICONERROR+MB_OK
+	end_loop:
+		mov eax,[wMsg.wParam]
+		ret	
+	
+	endp
 
 proc  CambiaColorFondo newColor, uhdc
     ;  Propósito: Modifica el color de fondo por defecto
@@ -272,6 +351,20 @@ proc  CambiaColorFondo newColor, uhdc
 ;     mov       [hBrushOld], eax
     ret
 endp
+
+proc WndProc uses ebx esi edi, hwnd,wmsg,wparam,lparam
+	cmp [wmsg],WM_DESTROY
+	je  .wmdestroy
+	.defwndproc:
+	 invoke	  DefWindowProc,[hwnd],[wmsg],[wparam],[lparam]
+	 jmp	  .finish
+	.wmdestroy:
+	 invoke	  PostQuitMessage,0
+	 xor	  eax,eax
+	.finish:
+	 ret
+endp
+
 section '.idata' import data readable writeable
   ;importamos solo los procedimientos basicos para abrir una ventana
   ;library kernel, 'KERNEL32.DLL',\

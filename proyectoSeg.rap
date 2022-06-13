@@ -62,7 +62,7 @@ MilestoneOnTime=2
 MilestoneOnDate=0
 MilestoneOnDateWhen=1
 MilestoneOnDateStatus=0
-MilestoneOnDateDate=9
+MilestoneOnDateDate=13
 MilestoneOnDateTimeYear=2022
 MilestoneOnDateTimeMonth=6
 MilestoneOnDateTimeDate=1
@@ -95,11 +95,11 @@ ProductVer4Range=0
 6=00FFFFFF
 7=00FFFFFF
 [PTimer]
-PTimer=52186236
+PTimer=718417969
 [Collapse]
 1=
 [Size]
-1=0,0,0,0,316
+1=0,0,0,0,1367
 4=0,0,0,0
 [GroupExpand]
 GroupExpand=0,1,0,0,1,0
@@ -116,3 +116,9 @@ GroupExpand=0,1,0,0,1,0
 9=
 [BreakPoint]
 0=
+[Find]
+1="ventana"
+2="createWindow"
+3="createWindown"
+4="MsgError"
+5="WndProc"
