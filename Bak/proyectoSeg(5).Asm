@@ -32,6 +32,7 @@ cdSix	dd 600
 cdSi	dd 500
 NombreClase db 'EXP01',0
 msgCabecera db 'Titulo de ventana',0
+MsgError	TCHAR	'carga inicial fallida.',0
 wMsg	MSG
 wc      WNDCLASS 0,WndProc,0,0,NULL,NULL,NULL,cdColFondo,NULL,NombreClase
 ps		PAINTSTRUCT
@@ -100,6 +101,24 @@ jCOMMAND:
 	je movDer
 	cmp eax,1007
 	je movIz
+	;circulo
+	cmp eax,1009
+	je mArrC
+	cmp eax,1008
+	je mAbaC
+	cmp eax,1010
+	je mIzqC
+	cmp eax,1011
+	je mDerC
+	;triangulo
+	cmp eax,1012
+	je mArrT
+	cmp eax,1013
+	je mIzqT
+	cmp eax,1014
+	je mDerT
+	cmp eax,1015
+	je mAbaT
 	xor eax,eax
 	jmp finish
 	
@@ -108,15 +127,16 @@ salir:
 	mov eax,1
 	jmp finish
 drawRec:
-	invoke GetModuleHandle,2
-	mov [wc.hInstance],eax
-	mov [wc.lpfnWndProc],WndProc
-	mov [wc.hbrBackground],COLOR_BTNFACE+1
-	invoke GetCommandLine
-	mov [CommandLine],EAX
-	stdcall WinMain,[wc.hInstance],NULL,NULL, SW_SHOWNORMAL
-	invoke ExitProcess,[wMsg.wParam]
-	
+	;trate de crear una nueva ventana
+	;invoke GetModuleHandle,0   ;como creo obtengo el controlador para crear nueva ventana
+	;mov [wc.hInstance],eax
+	;mov [wc.lpfnWndProc],WndProc
+	;mov [wc.hbrBackground],COLOR_BTNFACE+1
+	;invoke GetCommandLine
+	;mov [CommandLine],EAX
+	;stdcall WinMain,[wc.hInstance],NULL,NULL, SW_SHOWNORMAL ;me lleva al error 
+	;invoke ExitProcess,[wMsg.wParam]   ;esto se supone que sale del programa
+	;;////////////////////
 	mov [rectangulo.left],30
 	mov [rectangulo.right],50
 	add [rectangulo.right],50
@@ -125,7 +145,7 @@ drawRec:
 	mov [rectangulo.bottom],50
 	add [rectangulo.bottom],50
 	
-	mov [rectan2.right],350
+	mov [rectan2.right],650
 	;add [rectan2.top],200
 	mov [rectan2.bottom],290
 	invoke GetDC,[pWnd]
@@ -149,21 +169,8 @@ movArr:
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 	;cambiar color de fondo
-	stdcall CambiaColorFondo, 000h,[hdc]
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
 	
-	;fig Circulo
-	sub [corCir1.y],10
-	sub [corCir2.y],10
-	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
-
-	
-	;add [coord1.x],20		;crea otro triangulo
-	sub [coord1.y],20
-	;add [coord2.x],30
-	sub [coord2.y],20
-	;add [coord3.x],30
-	sub [coord3.y],20
-	invoke Polygon,[hdc],coord1,3
 	invoke CreateSolidBrush,0FFh ;cambia el color de relleno
 	invoke FillRect,[hdc],rectangulo,eax
 	
@@ -179,17 +186,7 @@ movAb:
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 	;cambiar color de fondo
-	stdcall CambiaColorFondo, 000h,[hdc]
-	;figura circulo
-	add [corCir1.y],10
-	add [corCir2.y],10
-	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
-
-	;figura de triangulo	
-	add [coord1.y],20
-	add [coord2.y],20
-	add [coord3.y],20
-	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
+	
 	
 	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
@@ -207,19 +204,7 @@ movDer:
 	add [rectangulo.right],20	;va a al izquierda
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
-	;cambiar color de fondo
-	stdcall CambiaColorFondo, 000h,[hdc]
-	;figura circulo
-	add [corCir1.x],10
-	add [corCir2.x],10
-	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
 
-	;figura de triangulo	
-	add [coord1.x],20
-	add [coord2.x],20
-	add [coord3.x],20
-	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
-	
 	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
 	
@@ -236,16 +221,12 @@ movIz:
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 	;figura circulo
-	sub [corCir1.x],10
-	sub [corCir2.x],10
-	stdcall CambiaColorFondo, 000h,[hdc]
-	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
 	
-	;figura de triangulo
-	sub [coord1.x],20
-	sub [coord2.x],20
-	sub [coord3.x],20
-	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
+	;sub [corCir1.x],10
+	;sub [corCir2.x],10
+	;stdcall CambiaColorFondo, 000h,[hdc]
+	;invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
+	
 	
 	invoke CreateSolidBrush,0FFh
 	invoke FillRect,[hdc],rectangulo,eax
@@ -253,11 +234,131 @@ movIz:
 	mov eax,1
 	jmp finish
 
-drawCir:
+;movimiento Circulo
+mArrC:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] ;sobreescribimos ante
+	
 	invoke GetDC,[pWnd]
-	mov [hdc],eax					;como mover esto
+	mov [hdc],eax
+	stdcall CambiaColorFondo, 0ffh,[hdc] ;cambia la brocha a color negro
+		;fig Circulo
+	sub [corCir1.y],10
+	sub [corCir2.y],10
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
+	
+	mov eax,1
+	jmp finish
+mAbaC:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] ;sobreescribimos ante
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+		;cambiar color de fondo
+	stdcall CambiaColorFondo, 0ffh,[hdc]
+	;figura circulo
+	add [corCir1.y],10
+	add [corCir2.y],10
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
+
+	mov eax,1
+	jmp finish
+mIzqC:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] ;sobreescribimos ante
+	
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	;figura circulo
+	sub [corCir1.x],10
+	sub [corCir2.x],10
+	stdcall CambiaColorFondo, 0ffh,[hdc]
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
+	
+	mov eax,1
+	jmp finish
+mDerC:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] ;sobreescribimos ante	
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+		;cambiar color de fondo
+	stdcall CambiaColorFondo, 0ffh,[hdc]
+	;figura circulo
+	add [corCir1.x],10
+	add [corCir2.x],10
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
+	mov eax,1
+	jmp finish
+;movimiento triangulo
+mArrT:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Polygon,[hdc],coord1,3
+	
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	;add [coord1.x],20		;crea otro triangulo
+	sub [coord1.y],20
+	sub [coord2.y],20
+	;add [coord3.x],30
+	sub [coord3.y],20
+	invoke Polygon,[hdc],coord1,3
+	mov eax,1
+	jmp finish
+mAbaT:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Polygon,[hdc],coord1,3
+	
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	;figura de triangulo	
+	add [coord1.y],20
+	add [coord2.y],20
+	add [coord3.y],20
+	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
+	mov eax,1
+	jmp finish
+mIzqT:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Polygon,[hdc],coord1,3
+	
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	;figura de triangulo
+	sub [coord1.x],20
+	sub [coord2.x],20
+	sub [coord3.x],20
+	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
+	mov eax,1
+	jmp finish
+mDerT:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Polygon,[hdc],coord1,3
+	
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	;figura de triangulo	
+	add [coord1.x],20
+	add [coord2.x],20
+	add [coord3.x],20
+	invoke Polygon,[hdc],coord1,3  ;esto lo dibuja
+	mov eax,1
+	jmp finish
+
+drawCir:
+	;invoke DialogBoxParam,eax,ventana_2,0,DlgProc,0  ;esto deberia crear ventana
+	invoke GetDC,[pWnd]
+	mov [hdc],eax					
+	stdcall CambiaColorFondo, 0ffh,[hdc] ;cambia la brocha a color negro
+	
+	
 	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y]  ;trato de poner nro const
 	
+	mov [rectan2.right],650
+	mov [rectan2.bottom],290
+	
+	;invoke CreateSolidBrush,0FFh
+	;invoke FillRect,[hdc],rectangulo,eax	
 	mov eax,1
 	jmp finish
 	
@@ -270,6 +371,13 @@ drawTrian:
 	invoke    CreateBrushIndirect, brocha
 	mov 	[brocha.lbStyle],eax
 	invoke FillRgn,[hdc],coord1,ulb
+	
+	mov [rectan2.right],650
+	mov [rectan2.bottom],290
+	
+	invoke CreateSolidBrush,0FFh
+	invoke FillRect,[hdc],rectangulo,eax
+	
 	;invoke SetPolyFillMode,[hdc],ALTERNATE
 	;invoke CreateSolidBrush,0BBh
 	;invoke FillRect,[hdc],Polygon,eax 
@@ -310,12 +418,12 @@ proc WinMain uses ebx esi edi, hInst,hPrevInst, CmdLine, CmdShow
 	invoke RegisterClass,wc
 	test eax,eax
 	jz   error
-	mov [wHMain],eax
+	;mov [whMain],eax	;esto esta demas
 	
 	invoke CreateWindowEx,cdVBarTipo,NombreClase,msgCabecera,cdVBarTipo,cdXPos,cdYPos,cdXSize,cdYSize,NULL,NULL,[wc.hInstance],NULL
 	
-	invoke ShowWindow,dword hWnd,dword SW_SHOWNORMAL
-	invoke UpdateWindow,dword hWnd
+	;invoke ShowWindow,dword hWnd,dword SW_SHOWNORMAL
+	;invoke UpdateWindow,dword hWnd
 	
 	msg_loop:
 		invoke GetMessage,wMsg,NULL,0,0
