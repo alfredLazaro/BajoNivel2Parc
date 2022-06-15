@@ -119,6 +119,26 @@ jCOMMAND:
 	je mDerT
 	cmp eax,1015
 	je mAbaT
+	cmp eax,1016
+	je fond1
+	cmp eax,1017
+	je fond2
+	cmp eax,1018
+	je fond3
+	cmp eax,1019
+	je col1
+	cmp eax,1020
+	je col2
+	cmp eax,1021
+	je col3
+	cmp eax,1022
+	je diaArD
+	cmp eax,1023
+	je diaAbD
+	cmp eax,1024
+	je diaAriz
+	cmp eax,1025
+	je diaAbiz
 	xor eax,eax
 	jmp finish
 	
@@ -127,13 +147,14 @@ salir:
 	mov eax,1
 	jmp finish
 drawRec:
-	invoke GetModuleHandle,0   ;como creo obtengo el controlador para crear nueva ventana
-	mov [wc.hInstance],eax
-	mov [wc.lpfnWndProc],WndProc
-	mov [wc.hbrBackground],COLOR_BTNFACE+1
-	invoke GetCommandLine
-	mov [CommandLine],EAX
-	stdcall WinMain,[wc.hInstance],NULL,NULL, SW_SHOWNORMAL ;me lleva al error 
+	;trate de crear una nueva ventana
+	;invoke GetModuleHandle,0   ;como creo obtengo el controlador para crear nueva ventana
+	;mov [wc.hInstance],eax
+	;mov [wc.lpfnWndProc],WndProc
+	;mov [wc.hbrBackground],COLOR_BTNFACE+1
+	;invoke GetCommandLine
+	;mov [CommandLine],EAX
+	;stdcall WinMain,[wc.hInstance],NULL,NULL, SW_SHOWNORMAL ;me lleva al error 
 	;invoke ExitProcess,[wMsg.wParam]   ;esto se supone que sale del programa
 	;;////////////////////
 	mov [rectangulo.left],30
@@ -175,6 +196,31 @@ movArr:
 	
 	mov eax,1
 	jmp finish
+diaArD:
+	invoke CreateSolidBrush,000h		;tratar de limpiar 
+	invoke FillRect,[hdc],rectangulo,eax
+	;dibujamos de nuevo
+	sub [rectangulo.bottom],20 ;SUBE 
+	add [rectangulo.right],20 ;va a la derecha 
+	add [rectangulo.left],20
+	sub [rectangulo.top],20	;sube arriba pero no borra lo dibujado
+	
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	;cambiar color de fondo
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	
+	invoke CreateSolidBrush,0FFh ;cambia el color de relleno
+	invoke FillRect,[hdc],rectangulo,eax
+	
+	mov eax,1
+	jmp finish
+	
+diaAbD:
+	
+diaAriz:
+diaAbiz:
+	
 movAb:
 	invoke CreateSolidBrush,000h		;tratar de limpiar 
 	invoke FillRect,[hdc],rectangulo,eax
@@ -192,6 +238,7 @@ movAb:
 	
 	mov eax,1
 	jmp finish
+
 movDer:
 	invoke CreateSolidBrush,000h		;tratar de limpiar 
 	invoke FillRect,[hdc],rectangulo,eax
@@ -235,10 +282,12 @@ movIz:
 
 ;movimiento Circulo
 mArrC:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] ;sobreescribimos ante
 	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
-	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	stdcall CambiaColorFondo, 0ffh,[hdc] ;cambia la brocha a color negro
 		;fig Circulo
 	sub [corCir1.y],10
 	sub [corCir2.y],10
@@ -247,11 +296,12 @@ mArrC:
 	mov eax,1
 	jmp finish
 mAbaC:
-	
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] ;sobreescribimos ante
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 		;cambiar color de fondo
-	stdcall CambiaColorFondo, 000h,[hdc]
+	stdcall CambiaColorFondo, 0ffh,[hdc]
 	;figura circulo
 	add [corCir1.y],10
 	add [corCir2.y],10
@@ -260,22 +310,26 @@ mAbaC:
 	mov eax,1
 	jmp finish
 mIzqC:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] ;sobreescribimos ante
+	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 	;figura circulo
 	sub [corCir1.x],10
 	sub [corCir2.x],10
-	stdcall CambiaColorFondo, 000h,[hdc]
+	stdcall CambiaColorFondo, 0ffh,[hdc]
 	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] 
 	
 	mov eax,1
 	jmp finish
 mDerC:
-	
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y] ;sobreescribimos ante	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 		;cambiar color de fondo
-	stdcall CambiaColorFondo, 000h,[hdc]
+	stdcall CambiaColorFondo, 0ffh,[hdc] ;en aqui lo cambio a rojo para mas bonito
 	;figura circulo
 	add [corCir1.x],10
 	add [corCir2.x],10
@@ -284,7 +338,9 @@ mDerC:
 	jmp finish
 ;movimiento triangulo
 mArrT:
-
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Polygon,[hdc],coord1,3
+	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 	;add [coord1.x],20		;crea otro triangulo
@@ -296,6 +352,9 @@ mArrT:
 	mov eax,1
 	jmp finish
 mAbaT:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Polygon,[hdc],coord1,3
+	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 	;figura de triangulo	
@@ -306,6 +365,9 @@ mAbaT:
 	mov eax,1
 	jmp finish
 mIzqT:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Polygon,[hdc],coord1,3
+	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 	;figura de triangulo
@@ -316,6 +378,9 @@ mIzqT:
 	mov eax,1
 	jmp finish
 mDerT:
+	stdcall CambiaColorFondo, 000h,[hdc] ;cambia la brocha a color negro
+	invoke Polygon,[hdc],coord1,3
+	
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
 	;figura de triangulo	
@@ -329,14 +394,17 @@ mDerT:
 drawCir:
 	;invoke DialogBoxParam,eax,ventana_2,0,DlgProc,0  ;esto deberia crear ventana
 	invoke GetDC,[pWnd]
-	mov [hdc],eax					;como mover esto
-	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y]  ;trato de poner nro const
+	mov [hdc],eax	
 	
 	mov [rectan2.right],650
 	mov [rectan2.bottom],290
 	
-	invoke CreateSolidBrush,0FFh
-	invoke FillRect,[hdc],rectangulo,eax
+	invoke CreateSolidBrush,000h
+	invoke FillRect,[hdc],rectan2,eax
+					
+	stdcall CambiaColorFondo, 0ffh,[hdc] ;cambia la brocha a color negro
+	
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y]  ;trato de poner nro const
 	
 	mov eax,1
 	jmp finish
@@ -344,18 +412,20 @@ drawCir:
 drawTrian:
 	invoke GetDC,[pWnd]
 	mov [hdc],eax
-	stdcall CambiaColorFondo, 000h,[hdc]
+	
+	mov [rectan2.right],650
+	mov [rectan2.bottom],290
+	
+	invoke CreateSolidBrush,000h
+	invoke FillRect,[hdc],rectan2,eax
+	
+	;stdcall CambiaColorFondo, 0ffh,[hdc]
 	invoke Polygon,[hdc],coord1,3
 	invoke CreateSolidBrush,0ffh
 	invoke    CreateBrushIndirect, brocha
 	mov 	[brocha.lbStyle],eax
 	invoke FillRgn,[hdc],coord1,ulb
 	
-	mov [rectan2.right],650
-	mov [rectan2.bottom],290
-	
-	invoke CreateSolidBrush,0FFh
-	invoke FillRect,[hdc],rectangulo,eax
 	
 	;invoke SetPolyFillMode,[hdc],ALTERNATE
 	;invoke CreateSolidBrush,0BBh
@@ -370,6 +440,74 @@ drawTrian:
 	 ;invoke FillRect,[hdc]
 	mov eax,1
 	jmp finish	
+	
+fond1:
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	mov [rectan2.right],650
+	mov [rectan2.bottom],290
+	
+	invoke CreateSolidBrush,010h
+	invoke FillRect,[hdc],rectan2,eax
+	
+	mov eax,1
+	jmp finish	
+fond2:
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	mov [rectan2.right],650
+	mov [rectan2.bottom],290
+	
+	invoke CreateSolidBrush,012h
+	invoke FillRect,[hdc],rectan2,eax
+	
+	mov eax,1
+	jmp finish
+fond3:
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	mov [rectan2.right],650
+	mov [rectan2.bottom],290
+	
+	invoke CreateSolidBrush,017h
+	invoke FillRect,[hdc],rectan2,eax
+	
+	mov eax,1
+	jmp finish
+col1:		
+	invoke GetDC,[pWnd]
+	mov [hdc],eax	
+	
+	;mov [rectan2.right],650
+	;mov [rectan2.bottom],290
+	
+	;invoke CreateSolidBrush,000h
+	;invoke FillRect,[hdc],rectan2,eax
+					
+	stdcall CambiaColorFondo, 0fah,[hdc] ;cambia la brocha a color nose
+	
+	invoke Ellipse,[hdc],[corCir1.x],[corCir1.y],[corCir2.x],[corCir2.y]  ;trato de poner nro const
+	
+	mov eax,1
+	jmp finish
+col2:
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+		invoke Polygon,[hdc],coord1,3
+	invoke CreateSolidBrush,0ffh
+	
+	mov eax,1
+	jmp finish
+col3:
+	invoke GetDC,[pWnd]
+	mov [hdc],eax
+	
+	invoke CreateSolidBrush,0fbh
+	invoke FillRect,[hdc],rectangulo,eax
+	
+	mov eax,1
+	jmp finish	
+			
 jCLOSE:	
 	invoke EndDialog,[hWnd],0
 	mov eax,1
